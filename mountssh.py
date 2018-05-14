@@ -1,6 +1,24 @@
+#!/usr/bin/env python3
 import os
 import subprocess
 import json
+import sys
+
+
+for arg in range(3):
+    try:
+        sys.argv[arg] = sys.argv[arg]
+
+    except IndexError:
+        sys.argv.append(None)
+
+
+#print(sys.argv)
+
+
+if sys.argv[1] == "-h" or sys.argv[1] == "--help":
+    print("Help screen")
+    exit(0)
 
 
 def getCommandOutput(command):
@@ -188,7 +206,10 @@ def deleteBookmark(bookmarkname = True):
 def getBookmarkInformation(bookmarkname):
     bookmark = loadBookmark(bookmarkname).getDictionary()
     for key in bookmark:
-        print(key + " = " + str(bookmark[key]))
+        if key == "remotemount" and bookmark[key] == "":
+            print("remotemount = ~/")
+        else:
+            print(key + " = " + str(bookmark[key]))
 
 
 def editBookmark(bookmarkname):
@@ -245,14 +266,14 @@ def getUserInput(isBookmark = False):
     # get hostname
     print("Please type in the Hostname")
     while True:
-        hostname = str(input(">>> "))
+        hostname = str(input(">>> ")).lower()
         if isReachable(hostname):
             break
         else:
             if isBookmark:
                 print("\nThe host is currently unavailable. Do you want to add this host anyway? (y/n)")
                 while True:
-                    answer = str(input(">>> "))
+                    answer = str(input(">>> ")).lower()
                     if answer == 'y' or answer == 'n':
                         break
                     else:
@@ -266,7 +287,7 @@ def getUserInput(isBookmark = False):
                 print("Please type in a reachable hostname\n")
     # get username
     print("\nPlease type in the username default = " + USER)
-    username = str(input(">>> "))
+    username = str(input(">>> ")).lower()
     if isEmptyString(username):
         username = USER
     # get port
@@ -301,7 +322,7 @@ def getUserInput(isBookmark = False):
     if isBookmark:
         print("\nPlease type in the bookmark name")
         while True:
-            bookmarkname = str(input(">>> "))
+            bookmarkname = str(input(">>> ")).lower()
             if bookmarkname in BOOKMARKS:
                 print("This bookmark name already exist\n")
                 continue
@@ -318,8 +339,84 @@ def getUserInput(isBookmark = False):
 
 def main():
     init()
-    connectInformation = getUserInput()
-    connect(connectInformation)
+    if sys.argv[1] in BOOKMARKS:
+        connect(loadBookmark(sys.argv[1]))
+
+    elif sys.argv[1] == "-n" or sys.argv[1] == "--new":
+        print("Creating new Bookmark")
+        newBookmark(getUserInput(True))
+
+    elif sys.argv[1] == "-e" or sys.argv[2] == "--edit":
+        if sys.argv[2] not in BOOKMARKS:
+            if sys.argv[2] is not None:
+                print("The bookmark " + sys.argv[2] + " doesn't exist")
+            print("Which bookmark do you want to edit?")
+            while True:
+                bookmarkname = str(input(">>> ")).lower()
+                if bookmarkname in BOOKMARKS:
+                    sys.argv[2] = bookmarkname
+                    break
+                else:
+                    print("The bookmark " + bookmarkname + " doesn't exist\n")
+        editBookmark(sys.argv[2])
+
+    elif sys.argv[1] == "-d" or sys.argv[1] == "--delete":
+        if len(BOOKMARKS) == 0:
+            print("There are no bookmarks to delete")
+            exit(1)
+        BOOKMARKS.append("*")
+        if sys.argv[2] not in BOOKMARKS:
+            if sys.argv[2] is not None:
+                print("The bookmark " + sys.argv[2] + " doesn't exist")
+            print("Which bookmark do you want to delete? (\'*\' for all)")
+            while True:
+                bookmarkname = str(input(">>> ")).lower()
+                if bookmarkname in BOOKMARKS:
+                    sys.argv[2] = bookmarkname
+                    break
+                else:
+                    print("The bookmark " + bookmarkname + " doesn't exist\n")
+        if sys.argv[2] == "*":
+            print("\nDo you really want to delete all bookmarks? (y/n)")
+            while True:
+                answer = str(input(">>> ")).lower()
+                if answer == 'y':
+                    deleteBookmark(True)
+                    break
+                elif answer == 'n':
+                    print("Nothing deleted")
+                    exit(0)
+                else:
+                    print("Invalid input\n")
+        else:
+            deleteBookmark(sys.argv[2])
+
+    elif sys.argv[1] == "-i" or sys.argv[1] == "--information":
+        if len(BOOKMARKS) == 0:
+            print("There are no bookmarks to show information for")
+            exit(1)
+        BOOKMARKS.append("*")
+        if sys.argv[2] not in BOOKMARKS:
+            if sys.argv[2] is not None:
+                print("The bookmark " + sys.argv[2] + " doesn't exist")
+            print("Of which bookmark to you see the information? (\'*\' for all)")
+            while True:
+                bookmarkname = str(input(">>> ")).lower()
+                if bookmarkname in BOOKMARKS:
+                    sys.argv[2] = bookmarkname
+                    break
+                else:
+                    print("The bookmark " + bookmarkname + " doesn't exist\n")
+        if sys.argv[2] == "*":
+            for bookmark in BOOKMARKS:
+                print("\nInformation for " + bookmark + ":\n")
+                getBookmarkInformation(bookmark)
+        else:
+            print("\nInformation for " + sys.argv[2] + ":\n")
+            getBookmarkInformation(sys.argv[2])
+
+    else:
+        connect(getUserInput())
 
 
 if __name__ == '__main__':
