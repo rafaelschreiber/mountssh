@@ -409,11 +409,40 @@ def main():
                     print("The bookmark " + bookmarkname + " doesn't exist\n")
         if sys.argv[2] == "*":
             for bookmark in BOOKMARKS:
-                print("\nInformation for " + bookmark + ":\n")
-                getBookmarkInformation(bookmark)
+                if bookmark == '*':
+                    pass
+                else:
+                    print("\nInformation for " + bookmark + ":\n")
+                    getBookmarkInformation(bookmark)
         else:
             print("\nInformation for " + sys.argv[2] + ":\n")
             getBookmarkInformation(sys.argv[2])
+
+    elif sys.argv[1] == "-r" or sys.argv[1] == "--rename":
+        if len(BOOKMARKS) == 0:
+            print("There are no bookmarks to rename")
+            exit(1)
+        if sys.argv[2] not in BOOKMARKS:
+            if sys.argv[2] is not None:
+                print("The bookmark " + sys.argv[2] + " doesn't exist")
+            print("Which bookmark do you want to rename")
+            while True:
+                src = str(input(">>> "))
+                if src in BOOKMARKS:
+                    sys.argv[2] = src
+                else:
+                    print("The bookmark " + src + " doesn't exist\n")
+        if sys.argv[3] in BOOKMARKS:
+            if sys.argv[3] is not None:
+                print("The bookmark " + sys.argv[3] + " already exist")
+            print("To which name do you want to rename " + sys.argv[2])
+            while True:
+                dest = str(input(">>> "))
+                if dest not in BOOKMARKS:
+                    sys.argv[3] = dest
+                else:
+                    print("The bookmark " + dest + " already exist\n")
+        renameBookmark(sys.argv[2], sys.argv[3])
 
     else:
         connect(getUserInput())
