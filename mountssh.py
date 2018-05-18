@@ -299,7 +299,6 @@ def getUserInput(isBookmark = False):
                 port = 22
                 break
             else:
-                print("here")
                 port = int(port)
                 break
         except ValueError:
